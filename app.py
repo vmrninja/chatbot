@@ -146,16 +146,17 @@ Be thorough, objective, and cite specific sections from the documents when makin
             else:
                 prompt += f"\n\nAssistant: {msg['content']}"
         prompt += "\n\nAssistant:"
-
+        print("Prompt to Claude API:", prompt)
+        
         # Call Claude API
-        response = client.completions.create(
-            model="claude-2",
-            prompt=prompt,
-            max_tokens_to_sample=4096,
+        response = client.messages.create(
+            model="claude-sonnet-4-20250514",
+            messages=prompt,
+            max_tokens=4096,
         )
         
         # Extract response text
-        response_text = response.completion
+        response_text = response.content
         
         return jsonify({
             'response': response_text
