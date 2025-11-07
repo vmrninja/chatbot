@@ -10,6 +10,7 @@ import uuid
 from anthropic import Anthropic
 from pathlib import Path
 import mimetypes
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app)
@@ -22,9 +23,14 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 # Storage for uploaded documents
 documents = {}
 
+# Load environment variables from .env file if present
+load_dotenv()
+
 # Initialize Anthropic client
-# Make sure to set your ANTHROPIC_API_KEY environment variable
-client = Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+api_key = os.environ.get("ANTHROPIC_API_KEY")
+if not api_key:
+    raise ValueError("ANTHROPIC_API_KEY not found in environment variables or .env file")
+client = Anthropic(api_key=api_key)
 
 
 def read_file_content(file_path):
@@ -132,16 +138,24 @@ Be thorough, objective, and cite specific sections from the documents when makin
     })
     
     try:
+        # Prepare the messages for the older API version
+        prompt = system_prompt + "\n\n"
+        for msg in messages:
+            if msg["role"] == "user":
+                prompt += f"\n\nHuman: {msg['content']}"
+            else:
+                prompt += f"\n\nAssistant: {msg['content']}"
+        prompt += "\n\nAssistant:"
+
         # Call Claude API
-        response = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=4096,
-            system=system_prompt,
-            messages=messages
+        response = client.completions.create(
+            model="claude-2",
+            prompt=prompt,
+            max_tokens_to_sample=4096,
         )
         
         # Extract response text
-        response_text = response.content[0].text
+        response_text = response.completion
         
         return jsonify({
             'response': response_text
