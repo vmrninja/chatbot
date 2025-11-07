@@ -1,0 +1,75 @@
+QUICK START GUIDE
+=================
+
+Get started with the Security Assessment Chatbot in 5 minutes!
+
+STEP 1: Install Dependencies
+-----------------------------
+pip install -r requirements.txt
+
+
+STEP 2: Set Your API Key
+-------------------------
+Get your API key from: https://console.anthropic.com/
+
+Then set it as an environment variable:
+
+macOS/Linux:
+  export ANTHROPIC_API_KEY='your-api-key-here'
+
+Windows (CMD):
+  set ANTHROPIC_API_KEY=your-api-key-here
+
+Windows (PowerShell):
+  $env:ANTHROPIC_API_KEY="your-api-key-here"
+
+
+STEP 3: Start the Server
+-------------------------
+python app.py
+
+
+STEP 4: Open Your Browser
+--------------------------
+Navigate to: http://localhost:5000
+
+
+STEP 5: Try It Out
+-------------------
+1. Upload the sample files:
+   - sample_security_policy.txt
+   - sample_assessment.txt
+
+2. Ask questions like:
+   - "What are the main compliance issues in the assessment?"
+   - "Does the vendor's encryption meet our policy requirements?"
+   - "Compare the incident response procedures"
+   - "What are the top 5 security concerns?"
+
+
+EXAMPLE QUESTIONS
+-----------------
+✓ "Does question 1's answer comply with section 1.1 of our policy?"
+✓ "Are there any critical gaps in the vendor's security controls?"
+✓ "What improvements should the vendor make to meet our requirements?"
+✓ "Summarize the vendor's backup and recovery capabilities"
+✓ "Which policy sections are not addressed in the assessment?"
+
+
+TROUBLESHOOTING
+---------------
+Problem: "ANTHROPIC_API_KEY environment variable not set"
+Solution: Make sure you've set the API key (see Step 2)
+
+Problem: "Port 5000 is already in use"
+Solution: Change the port in app.py or stop the other service
+
+Problem: "Module not found"
+Solution: Make sure you've installed dependencies (see Step 1)
+
+
+Need Help?
+----------
+- Anthropic Documentation: https://docs.anthropic.com/
+- Flask Documentation: https://flask.palletsprojects.com/
+- See README.md for detailed information

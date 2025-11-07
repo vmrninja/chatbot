@@ -1,0 +1,99 @@
+THIRD-PARTY SECURITY ASSESSMENT QUESTIONNAIRE
+Vendor: TechVendor Solutions Inc.
+Assessment Date: February 2025
+Completed By: John Smith, Security Manager
+
+SECTION A: DATA SECURITY
+
+Q1. What encryption standards do you use for data at rest?
+A1. We use AES-128 encryption for all stored data. Our encryption implementation has been in place since 2018 and meets industry standards.
+
+Q2. What encryption protocols do you use for data in transit?
+A2. We support TLS 1.0, TLS 1.1, and TLS 1.2 for backward compatibility with older systems. All customer-facing applications default to TLS 1.2.
+
+Q3. How are encryption keys managed?
+A3. Encryption keys are stored in our secure database alongside the encrypted data for efficient access. Keys are changed annually as part of our security maintenance.
+
+SECTION B: ACCESS CONTROL
+
+Q4. What authentication mechanisms are in place?
+A4. We require passwords with minimum 8 characters. Multi-factor authentication is available as an optional feature that customers can enable at additional cost.
+
+Q5. How often are passwords required to be changed?
+A5. We recommend users change passwords every 6 months, though this is not enforced by the system. Users can keep the same password if they prefer for convenience.
+
+Q6. What privileged access controls are implemented?
+A6. Administrator accounts have elevated privileges. We review these accounts when requested. All administrative actions are available in system logs if needed.
+
+SECTION C: INCIDENT RESPONSE
+
+Q7. What is your incident response process?
+A7. When security incidents are detected, our support team investigates within 48 hours. For serious incidents, we aim to notify affected customers within 5 business days. We maintain incident records for 2 years.
+
+Q8. What incident classification system do you use?
+A8. We classify incidents as either "Minor" or "Major" based on our internal assessment. Major incidents are escalated to senior management.
+
+Q9. Do you have a documented incident response plan?
+A9. Yes, we have an incident response procedure document that was created in 2020. It is available to our internal team.
+
+SECTION D: VULNERABILITY MANAGEMENT
+
+Q10. How often do you perform vulnerability scans?
+A10. We conduct vulnerability scans on a monthly basis for internal systems and quarterly for external-facing systems. We prioritize fixes based on available resources.
+
+Q11. What is your patch management process?
+A11. Security patches are reviewed monthly and applied during our quarterly maintenance windows. Critical patches may be applied sooner depending on severity and business impact.
+
+Q12. When was your last penetration test?
+A12. Our last penetration test was conducted in 2022. We are planning to schedule another test sometime this year.
+
+SECTION E: BACKUP AND RECOVERY
+
+Q13. What is your backup frequency?
+A13. We perform full backups weekly. Backup retention is 30 days. Backups are stored on our primary data center servers.
+
+Q14. How often do you test backup restoration?
+A14. We test our backup restoration process annually or when issues are reported by customers.
+
+Q15. What are your RTO and RPO targets?
+A15. Our target Recovery Time Objective is 48 hours for most systems. Recovery Point Objective is approximately 7 days based on our weekly backup schedule.
+
+SECTION F: COMPLIANCE AND CERTIFICATIONS
+
+Q16. What security certifications do you maintain?
+A16. We completed our first SOC 2 Type I audit last year. We are working towards ISO 27001 certification and expect to complete it within the next 18-24 months.
+
+Q17. When was your last security audit?
+A17. Our last external security audit was completed in January 2024 as part of our SOC 2 Type I certification process.
+
+Q18. Do you conduct internal security assessments?
+A18. Yes, our IT team performs internal security checks on an ad-hoc basis, typically when implementing new features or if security concerns arise.
+
+SECTION G: PERSONNEL SECURITY
+
+Q19. What security training do you provide to employees?
+A19. New employees receive security orientation during onboarding. Additional security training is provided to IT staff. We send security reminder emails quarterly.
+
+Q20. How do you handle employee departures?
+A20. When employees leave, we disable their accounts within 24-48 hours. Access reviews are performed monthly to ensure no orphaned accounts exist.
+
+SECTION H: THIRD-PARTY MANAGEMENT
+
+Q21. How do you manage your sub-processors and vendors?
+A21. We work with several cloud service providers and have contracts in place with them. Our vendors are selected based on cost and functionality requirements.
+
+Q22. Do you require security assessments of your vendors?
+A22. We review vendor security documentation when provided. Formal security assessments are conducted for major vendors on a case-by-case basis.
+
+ADDITIONAL NOTES:
+- Current customer count: 250+ organizations
+- Data processed: Customer business data, including some financial information
+- Hosting: Primary data center in US, with plans to expand to EU region
+- Support: 24/7 support available for enterprise customers
+
+Certification:
+I certify that the information provided in this questionnaire is accurate to the best of my knowledge.
+
+John Smith
+Security Manager, TechVendor Solutions Inc.
+February 10, 2025
