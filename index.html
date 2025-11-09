@@ -13,7 +13,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #000000;
             height: 100vh;
             display: flex;
             justify-content: center;
@@ -34,10 +34,39 @@
         }
 
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #212529;
             color: white;
             padding: 20px 30px;
             border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo {
+            background: rgba(255, 255, 255, 0.1);
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 8px;
+        }
+
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+        .header-text {
+            flex: 1;
         }
 
         .header h1 {
@@ -298,8 +327,15 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Security Assessment Chatbot</h1>
-            <p>Upload assessment questionnaires and security policies, then ask questions to verify compliance</p>
+            <div class="header-content">
+                <div class="logo">
+                    <img src="C:/Users/Claude Lab/chatbot/uploads/csa_tp_logo.png" alt="CSA TP Logo">
+                </div>
+                <div class="header-text">
+                    <h1>CSA Third-Party Security Assessment AI Assitant</h1>
+                    <p>Upload assessment questionnaires and security policies, then ask questions to verify compliance</p>
+                </div>
+            </div>
         </div>
 
         <div class="upload-section">
