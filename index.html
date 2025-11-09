@@ -59,9 +59,29 @@
 
         .file-upload {
             display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .file-actions {
+            display: flex;
             gap: 10px;
             align-items: center;
-            flex-wrap: wrap;
+        }
+
+        .clear-button {
+            padding: 10px 20px;
+            background: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .clear-button:hover {
+            background: #c82333;
         }
 
         .file-input-wrapper {
@@ -284,9 +304,12 @@
 
         <div class="upload-section">
             <div class="file-upload">
-                <div class="file-input-wrapper">
-                    <input type="file" id="fileInput" multiple accept=".txt,.pdf,.doc,.docx,.md">
-                    <label for="fileInput" class="file-input-label">📎 Upload Documents</label>
+                <div class="file-actions">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="fileInput" multiple accept=".txt,.pdf,.doc,.docx,.md">
+                        <label for="fileInput" class="file-input-label">📎 Upload Documents</label>
+                    </div>
+                    <button id="clearAll" class="clear-button" style="display: none;">🗑️ Clear All</button>
                 </div>
                 <div class="uploaded-files" id="uploadedFiles"></div>
             </div>
@@ -352,18 +375,60 @@
 
         function updateFileDisplay() {
             const container = document.getElementById('uploadedFiles');
+            const clearAllButton = document.getElementById('clearAll');
+            
             container.innerHTML = uploadedFiles.map((file, index) => `
                 <div class="file-tag">
                     📄 ${file.name}
                     <span class="remove" onclick="removeFile(${index})">×</span>
                 </div>
             `).join('');
+
+            // Show/hide Clear All button based on whether there are files
+            clearAllButton.style.display = uploadedFiles.length > 0 ? 'block' : 'none';
         }
 
-        function removeFile(index) {
-            uploadedFiles.splice(index, 1);
-            updateFileDisplay();
+        async function removeFile(index) {
+            const file = uploadedFiles[index];
+            try {
+                const response = await fetch(`${API_BASE_URL}/delete/${file.id}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    uploadedFiles.splice(index, 1);
+                    updateFileDisplay();
+                } else {
+                    const error = await response.json();
+                    addErrorMessage(error.error || 'Failed to delete file');
+                }
+            } catch (error) {
+                addErrorMessage(`Error deleting file: ${error.message}`);
+            }
         }
+
+        // Clear all files
+        document.getElementById('clearAll').addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to clear all documents?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/clear`, {
+                    method: 'POST'
+                });
+
+                if (response.ok) {
+                    uploadedFiles = [];
+                    updateFileDisplay();
+                } else {
+                    const error = await response.json();
+                    addErrorMessage(error.error || 'Failed to clear documents');
+                }
+            } catch (error) {
+                addErrorMessage(`Error clearing documents: ${error.message}`);
+            }
+        });
 
         // Chat handling
         document.getElementById('messageForm').addEventListener('submit', async (e) => {
