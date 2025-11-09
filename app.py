@@ -11,6 +11,7 @@ from anthropic import Anthropic
 from pathlib import Path
 import mimetypes
 from dotenv import load_dotenv
+import json
 
 app = Flask(__name__)
 CORS(app)
@@ -33,6 +34,17 @@ if not api_key:
 client = Anthropic(api_key=api_key)
 
 
+# Helper functions
+def add_user_messages(messages, text):
+    input_message = {"role": "user", "content": text}
+    messages.append(input_message)
+
+def add_assistant_messages(messages, text):
+    input_message = {"role": "assistant", "content": text}
+    messages.append(input_message)
+
+
+# Handling file upload and use of its content for context
 def read_file_content(file_path):
     """Read and return file content as text."""
     try:
@@ -71,6 +83,8 @@ def upload_file():
     # Read and store content
     content = read_file_content(file_path)
     
+    print(f"Uploaded file: {file.filename} (ID: {file_id}, Size: {os.path.getsize(file_path)} bytes), File content: {content[:100]}...")  # Print first 100 chars of content
+
     documents[file_id] = {
         'filename': file.filename,
         'path': str(file_path),
@@ -94,6 +108,8 @@ def chat():
     if not user_message:
         return jsonify({'error': 'No message provided'}), 400
     
+    print(f"Received user message: {user_message}")
+
     # Build context from uploaded documents
     context = ""
     if file_ids:
@@ -122,41 +138,26 @@ Be thorough, objective, and cite specific sections from the documents when makin
     
     if context:
         # Add context as a user message first
-        messages.append({
-            "role": "user",
-            "content": context
-        })
-        messages.append({
-            "role": "assistant",
-            "content": "I have reviewed the uploaded documents. How can I help you analyze them?"
-        })
+        add_user_messages(messages, context)
+        add_assistant_messages(messages, "I have received the uploaded documents. How can I help you analyze them?")
     
     # Add the actual user question
-    messages.append({
-        "role": "user",
-        "content": user_message
-    })
+    add_user_messages(messages, user_message)
     
+    formatted_json = json.dumps(messages, indent=4)
+    print("Formatted messages so far:", formatted_json)
+
     try:
-        # Prepare the messages for the older API version
-        prompt = system_prompt + "\n\n"
-        for msg in messages:
-            if msg["role"] == "user":
-                prompt += f"\n\nHuman: {msg['content']}"
-            else:
-                prompt += f"\n\nAssistant: {msg['content']}"
-        prompt += "\n\nAssistant:"
-        print("Prompt to Claude API:", prompt)
-        
         # Call Claude API
         response = client.messages.create(
             model="claude-sonnet-4-20250514",
-            messages=prompt,
+            messages=messages,
             max_tokens=4096,
+            system=system_prompt
         )
         
         # Extract response text
-        response_text = response.content
+        response_text = response.content[0].text
         
         return jsonify({
             'response': response_text
@@ -167,24 +168,69 @@ Be thorough, objective, and cite specific sections from the documents when makin
             'error': f'Error calling Claude API: {str(e)}'
         }), 500
 
+# Delete all uploaded documents
+@app.route('/delete/<file_id>', methods=['DELETE'])
+def delete_document(file_id):
+    """Delete a specific document."""
+    global documents
+    
+    if file_id not in documents:
+        return jsonify({
+            'error': 'File not found'
+        }), 404
+    
+    try:
+        # Get the file path and delete it
+        file_path = documents[file_id]['path']
+        os.remove(file_path)
+        
+        # Remove from documents dictionary
+        del documents[file_id]
+        
+        return jsonify({
+            'message': f'File deleted successfully',
+            'file_id': file_id,
+            'success': True
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Error deleting file: {str(e)}',
+            'success': False
+        }), 500
 
 @app.route('/clear', methods=['POST'])
 def clear_documents():
     """Clear all uploaded documents."""
     global documents
     
-    # Delete files
-    for doc in documents.values():
-        try:
-            os.remove(doc['path'])
-        except:
-            pass
-    
-    documents = {}
-    
-    return jsonify({
-        'message': 'All documents cleared'
-    })
+    try:
+        # Count files before deletion
+        file_count = len(documents)
+        
+        # Delete files
+        failed_deletions = 0
+        for doc in documents.values():
+            try:
+                os.remove(doc['path'])
+            except Exception as e:
+                print(f"Failed to delete file {doc['path']}: {str(e)}")
+                failed_deletions += 1
+        
+        # Clear the documents dictionary
+        documents.clear()
+        
+        return jsonify({
+            'message': f'Cleared {file_count} documents',
+            'failed_deletions': failed_deletions,
+            'success': True
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'error': f'Error clearing documents: {str(e)}',
+            'success': False
+        }), 500
 
 
 if __name__ == '__main__':
