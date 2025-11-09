@@ -3,7 +3,7 @@ Security Assessment Chatbot Backend
 Handles document uploads and chat interactions with Claude API
 """
 
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, Response, stream_with_context
 from flask_cors import CORS
 import os
 import uuid
@@ -20,9 +20,6 @@ CORS(app)
 UPLOAD_FOLDER = Path('./uploads')
 UPLOAD_FOLDER.mkdir(exist_ok=True)
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-
-# Storage for uploaded documents
-documents = {}
 
 # Load environment variables from .env file if present
 load_dotenv()
@@ -43,6 +40,8 @@ def add_assistant_messages(messages, text):
     input_message = {"role": "assistant", "content": text}
     messages.append(input_message)
 
+# Storage for uploaded documents
+documents = {}
 
 # Handling file upload and use of its content for context
 def read_file_content(file_path):
@@ -100,7 +99,7 @@ def upload_file():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    """Handle chat messages and return Claude's response."""
+    """Handle chat messages and stream Claude's response."""
     data = request.json
     user_message = data.get('message', '')
     file_ids = data.get('file_ids', [])
@@ -108,8 +107,6 @@ def chat():
     if not user_message:
         return jsonify({'error': 'No message provided'}), 400
     
-    print(f"Received user message: {user_message}")
-
     # Build context from uploaded documents
     context = ""
     if file_ids:
@@ -135,7 +132,6 @@ Be thorough, objective, and cite specific sections from the documents when makin
 
     # Prepare messages
     messages = []
-    
     if context:
         # Add context as a user message first
         add_user_messages(messages, context)
@@ -145,28 +141,50 @@ Be thorough, objective, and cite specific sections from the documents when makin
     add_user_messages(messages, user_message)
     
     formatted_json = json.dumps(messages, indent=4)
-    print("Formatted messages so far:", formatted_json)
 
+    # Set headers for streaming response
+    response = Response(stream_with_context(stream_response(messages, system_prompt)), 
+                       mimetype='text/event-stream')
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['X-Accel-Buffering'] = 'no'
+    return response
+
+def stream_response(messages, system_prompt):
+    """Stream the response from Claude API"""
     try:
-        # Call Claude API
-        response = client.messages.create(
+        response_text = ""
+        with client.messages.stream(
             model="claude-sonnet-4-20250514",
             messages=messages,
             max_tokens=4096,
             system=system_prompt
-        )
-        
-        # Extract response text
-        response_text = response.content[0].text
-        
-        return jsonify({
-            'response': response_text
-        })
-        
+        ) as stream:
+            for chunk in stream:
+                if chunk.type == "content_block_delta":
+                    if hasattr(chunk.delta, 'text'):
+                        text_chunk = chunk.delta.text
+                        response_text += text_chunk
+                        # Send each chunk as a server-sent event
+                        yield f"data: {json.dumps({'response': text_chunk, 'done': False})}\n\n"
+                
+                elif chunk.type == "content_block_stop":
+                    # Send final message indicating completion
+                    yield f"data: {json.dumps({'response': '', 'done': True})}\n\n"
+                    break
+            
+            # Add the complete response to messages history
+            add_assistant_messages(messages, response_text)
+    
     except Exception as e:
-        return jsonify({
-            'error': f'Error calling Claude API: {str(e)}'
-        }), 500
+        error_response = json.dumps({'error': f'Error calling Claude API: {str(e)}'})
+        yield f"data: {error_response}\n\n"
+    data = request.json
+    user_message = data.get('message', '')
+    file_ids = data.get('file_ids', [])
+    
+    if not user_message:
+        return jsonify({'error': 'No message provided'}), 400
+    
 
 # Delete all uploaded documents
 @app.route('/delete/<file_id>', methods=['DELETE'])
